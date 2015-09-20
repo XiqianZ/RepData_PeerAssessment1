@@ -1,0 +1,67 @@
+Peer Assessment 1
+=================
+
+*This is my first R markdown and it is for the peer assessment 1 for course Reproducible data*
+
+###1.Loading and preprocessing the data
+```{r Read the explore the data, cache=TRUE}
+setwd("~/GitHub/RepData_PeerAssessment1");
+actData = read.csv("activity.csv");
+actData[,2]=as.character(actData[,2]);
+actData[,2]=as.Date(actData[,2],"%Y-%m-%d");
+summary(actData);
+```
+
+###2.Mean total number of steps taken per day
+```{r cal the mean per day, cache=TRUE}
+library(plyr);
+dt=na.omit(actData);
+stepsAnly=ddply(dt,~date,summarize,meanStep=mean(steps),totalStep=sum(steps));
+stepsMedian=median(stepsAnly$totalStep);
+stepsMean = mean(stepsAnly$totalStep);
+hist(stepsAnly$totalStep,breaks = 10,main="Histogram of total steps per day",
+     xlab="Total Steps");
+```
+
+The mean of total number of steps taken per day is `r stepsMean` steps. And the median of total number of steps taken per day is `r stepsMedian` steps.
+
+###3.Average daily activities
+```{r ,cache=TRUE}
+stepPattern = ddply(dt,~interval,summarize,pattern=mean(steps));
+plot(stepPattern$interval,stepPattern$pattern,type="l",main="Daily activity 
+     pattern",xlab="Time Interval",ylab="Average Steps");
+stepMaxInterval = stepPattern[which.max(stepPattern[,2]),1];
+hour=floor(stepMaxInterval/100);
+minute=stepMaxInterval%%100;
+```
+
+The maximum number of steps occurs at `r hour`:`r minute`.
+
+###4. Imputing missing values
+```{r,cache=TRUE}
+nNA = sum(is.na(actData[,1]));
+dtf = actData;
+dtf$steps[is.na(dtf$steps)]<-0;
+stepsAnly=ddply(dtf,~date,summarize,meanStep=mean(steps),totalStep=sum(steps));
+stepsMedian=median(stepsAnly$totalStep);
+stepsMean = mean(stepsAnly$totalStep);
+hist(stepsAnly$totalStep,breaks = 10,main="Histogram of total steps per day with NA filled",
+     xlab="Total Steps");
+```
+
+The mean of total number of steps taken per day is `r stepsMean` steps. And the median of total number of steps taken per day is `r stepsMedian` steps.
+
+After filling the NA with 0, the frequecy of 0 increases dramatically in the histogram. Therefore, the value of mean and median drop slightly because the value pool contains more 0 now. 
+
+###5. Activity patterns between weekdays and weekends
+```{r,cache=TRUE}
+dtf$TimeOfWeek<-ifelse(weekdays(dtf$date,TRUE)=="“y"|weekdays(dtf$date,TRUE)=="“ú",
+                       "weekends","weekdays")
+stepPatternWD = ddply(dtf[dtf$TimeOfWeek=="weekdays",],~interval,summarize,pattern=mean(steps));
+stepPatternWE = ddply(dtf[dtf$TimeOfWeek=="weekends",],~interval,summarize,pattern=mean(steps));
+par(mfrow = c(2,1), mar=c(4,4,2,1));
+plot(stepPatternWD$interval,stepPatternWD$pattern,type="l",ylim=c(0,200),
+     xlab="Interval",ylab="Number of Steps",main="weekdays");
+plot(stepPatternWE$interval,stepPatternWE$pattern,type="l",ylim=c(0,200),
+     xlab="Interval",ylab="Number of Steps",main="weekends");
+```
