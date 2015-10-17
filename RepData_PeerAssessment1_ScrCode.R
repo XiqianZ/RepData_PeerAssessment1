@@ -24,7 +24,12 @@ minute=stepMaxInterval%%100;
 #Imputing missing values
 nNA = sum(is.na(actData[,1]));
 dtf = actData;
-dtf$steps[is.na(dtf$steps)]<-0;
+for(i in 1:nrow(dtf)){
+  if(is.na(dtf[i,1])){
+    dtf[i,1] = sample(unique(dt[(dt[,3]==dtf[i,3]),1]), size=1);
+  }
+}
+#dtf$steps[is.na(dtf$steps)]<-0;
 stepsAnly=ddply(dtf,~date,summarize,meanStep=mean(steps),totalStep=sum(steps));
 stepsMedian=median(stepsAnly$totalStep);
 stepsMean = mean(stepsAnly$totalStep);
@@ -33,10 +38,10 @@ hist(stepsAnly$totalStep,breaks = 10,main="Histogram of total steps per day with
 
 #part 5
 #weekdays vs. weekends
-dtf$TimeOfWeek<-ifelse(weekdays(dtf$date,TRUE)=="“y"|weekdays(dtf$date,TRUE)=="“ú",
+dtf$TimeOfWeek<-ifelse(weekdays(dtf$date,TRUE)=="Sun"|weekdays(dtf$date,TRUE)=="Sat",
                        "weekends","weekdays")
 stepPatternWD = ddply(dtf[dtf$TimeOfWeek=="weekdays",],~interval,summarize,pattern=mean(steps));
 stepPatternWE = ddply(dtf[dtf$TimeOfWeek=="weekends",],~interval,summarize,pattern=mean(steps));
 par(mfrow = c(2,1), mar=c(4,4,2,1));
-plot(stepPatternWD$interval,stepPatternWD$pattern,type="l",ylim=c(0,200));
-plot(stepPatternWE$interval,stepPatternWE$pattern,type="l",ylim=c(0,200));
+plot(stepPatternWD$interval,stepPatternWD$pattern,type="l",ylim=c(0,200),xlim=c(0,3000));
+plot(stepPatternWE$interval,stepPatternWE$pattern,type="l",ylim=c(0,200),xlim=c(0,3000));
